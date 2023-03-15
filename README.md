@@ -1,3 +1,3 @@
-# android-drawing-canvas
+# drawing on canvas
 
-codelab part of custom view creation: drawing on canvas
+codelab part of custom view creation
