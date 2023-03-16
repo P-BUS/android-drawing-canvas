@@ -7,7 +7,9 @@ import android.graphics.Paint
 import android.graphics.Path
 import android.view.MotionEvent
 import android.view.View
+import android.view.ViewConfiguration
 import androidx.core.content.res.ResourcesCompat
+import kotlin.math.abs
 
 private const val STROKE_WIDTH = 12f
 
@@ -28,9 +30,12 @@ class MyCanvasView(context: Context) : View(context) {
         strokeCap = Paint.Cap.ROUND // default: BUTT
         strokeWidth = STROKE_WIDTH // default: Hairline-width (really thin)
     }
+    private val touchTolerance = ViewConfiguration.get(context).scaledTouchSlop
     private var path = Path()
     private var motionTouchEventX = 0f
     private var motionTouchEventY = 0f
+    private var currentX = 0f
+    private var currentY = 0f
 
     override fun onSizeChanged(width: Int, height: Int, oldWidth: Int, oldHeight: Int) {
         super.onSizeChanged(width, height, oldWidth, oldHeight)
@@ -60,14 +65,29 @@ class MyCanvasView(context: Context) : View(context) {
     }
 
     private fun touchStart() {
-        TODO("Not yet implemented")
+        path.reset()
+        path.moveTo(motionTouchEventX, motionTouchEventY)
+        currentX = motionTouchEventX
+        currentY = motionTouchEventY
     }
 
     private fun touchMove() {
-        TODO("Not yet implemented")
+        val dx = abs(motionTouchEventX - currentX)
+        val dy = abs(motionTouchEventY - currentY)
+        if (dx >= touchTolerance || dy >= touchTolerance) {
+            // quadTo() smoothly drawn line without corners from the last point,
+            // approaching control point (x1,y1), and ending at (x2,y2).
+            path.quadTo(currentX, currentY, (motionTouchEventX + currentX) / 2, (motionTouchEventY + currentY) / 2)
+            currentX = motionTouchEventX
+            currentY = motionTouchEventY
+            // Draw the path in the extra bitmap to cache it.
+            extraCanvas.drawPath(path, paint)
+        }
+        invalidate()
     }
-
+    // the user lifts their touch
     private fun touchUp() {
-        TODO("Not yet implemented")
+        // Reset the path so it doesn't get drawn again.
+        path.reset()
     }
 }
